@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-family: var(--font-body), sans-serif;
+  @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading), sans-serif;
+}
+
+.shell {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+}
+
+.surface-card {
+  @apply rounded-3xl border border-white/60 bg-white/85 shadow-soft backdrop-blur;
+}
+
+.section-title {
+  @apply text-2xl font-bold tracking-tight text-ocean-900 sm:text-3xl;
+}
+
+.section-subtitle {
+  @apply mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base;
+}
