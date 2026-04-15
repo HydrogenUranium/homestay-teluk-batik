@@ -35,12 +35,90 @@ function getSupabaseAdminClient() {
   });
 }
 
+function parseJwtRole(token) {
+  if (!token || typeof token !== "string") {
+    return null;
+  }
+  const parts = token.split(".");
+  if (parts.length < 2) {
+    return null;
+  }
+  try {
+    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf-8"));
+    return payload?.role || null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function getSupabasePublicClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    return null;
+  }
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+function getSupabaseUserClient(accessToken) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key || !accessToken) {
+    return null;
+  }
+
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  });
+}
+
 function shouldUseSupabase() {
-  return process.env.DATA_PROVIDER === "supabase" && !!getSupabaseAdminClient();
+  return process.env.DATA_PROVIDER === "supabase";
 }
 
 function sortByOrder(images) {
   return [...images].sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+function isLikelyRlsError(message) {
+  return typeof message === "string" && message.toLowerCase().includes("row-level security policy");
+}
+
+function getMutationClients(accessToken) {
+  const adminClient = getSupabaseAdminClient();
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceRole = parseJwtRole(serviceKey);
+  const anonRole = parseJwtRole(anonKey);
+  const hasServiceRoleKey = !!serviceKey && serviceRole === "service_role";
+  const isServiceKeyActuallyAnon = !!serviceKey && serviceRole === "anon";
+  const userClient = getSupabaseUserClient(accessToken);
+
+  if (adminClient && hasServiceRoleKey) {
+    return { primaryClient: adminClient, fallbackClient: userClient };
+  }
+  if (userClient) {
+    return { primaryClient: userClient, fallbackClient: null };
+  }
+
+  throw new Error(
+    isServiceKeyActuallyAnon || anonRole === "anon"
+      ? "Supabase write is not configured. SUPABASE_SERVICE_ROLE_KEY is using anon role. Use the real service_role key from Supabase Settings > API, then re-login."
+      : "Supabase write is not configured correctly. Set a real SUPABASE_SERVICE_ROLE_KEY (service_role), or re-login and add authenticated write policies.",
+  );
 }
 
 export async function getHomestayContent() {
@@ -68,7 +146,10 @@ async function getLocalHomestayContent() {
 }
 
 async function getSupabaseHomestayContent() {
-  const supabase = getSupabaseAdminClient();
+  const supabase = getSupabasePublicClient() || getSupabaseAdminClient();
+  if (!supabase) {
+    throw new Error("Supabase public read is not configured.");
+  }
   const slugs = HOMESTAYS.map((home) => home.slug);
 
   const [{ data: imagesRows }, { data: blockedRows }] = await Promise.all([
@@ -120,14 +201,20 @@ async function getSupabaseHomestayContent() {
   });
 }
 
-export async function addBlockedDate(homestaySlug, date) {
+export async function addBlockedDate(homestaySlug, date, options = {}) {
   if (shouldUseSupabase()) {
-    const supabase = getSupabaseAdminClient();
-    const { data, error } = await supabase
-      .from("homestay_blocked_dates")
-      .insert({ homestay_slug: homestaySlug, date })
-      .select("id, date")
-      .single();
+    const { primaryClient, fallbackClient } = getMutationClients(options.accessToken);
+    const query = (client) =>
+      client
+        .from("homestay_blocked_dates")
+        .insert({ homestay_slug: homestaySlug, date })
+        .select("id, date")
+        .single();
+
+    let { data, error } = await query(primaryClient);
+    if (error && fallbackClient && isLikelyRlsError(error.message)) {
+      ({ data, error } = await query(fallbackClient));
+    }
 
     if (error) {
       throw new Error(error.message);
@@ -147,10 +234,15 @@ export async function addBlockedDate(homestaySlug, date) {
   return { id, date };
 }
 
-export async function removeBlockedDate(homestaySlug, blockedId) {
+export async function removeBlockedDate(homestaySlug, blockedId, options = {}) {
   if (shouldUseSupabase()) {
-    const supabase = getSupabaseAdminClient();
-    const { error } = await supabase.from("homestay_blocked_dates").delete().eq("id", blockedId);
+    const { primaryClient, fallbackClient } = getMutationClients(options.accessToken);
+    const query = (client) => client.from("homestay_blocked_dates").delete().eq("id", blockedId);
+    let { error } = await query(primaryClient);
+    if (error && fallbackClient && isLikelyRlsError(error.message)) {
+      ({ error } = await query(fallbackClient));
+    }
+
     if (error) {
       throw new Error(error.message);
     }
@@ -164,41 +256,56 @@ export async function removeBlockedDate(homestaySlug, blockedId) {
   await writeLocalData(localData);
 }
 
-export async function uploadImage({ homestaySlug, altText, fileBuffer, originalName, contentType }) {
+export async function uploadImage(
+  { homestaySlug, altText, fileBuffer, originalName, contentType },
+  options = {},
+) {
   const homestay = getHomestayBySlug(homestaySlug);
   if (!homestay) {
     throw new Error("Invalid homestay slug");
   }
 
   if (shouldUseSupabase()) {
-    const supabase = getSupabaseAdminClient();
-    const bucket = process.env.SUPABASE_STORAGE_BUCKET || "homestay-images";
-    const extension = originalName.split(".").pop()?.toLowerCase() || "jpg";
+    const { primaryClient, fallbackClient } = getMutationClients(options.accessToken);
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET || "homestay_images";
     const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "-");
-    const storagePath = `${homestaySlug}/${Date.now()}-${safeName}`;
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(storagePath, fileBuffer, { contentType, upsert: false });
 
-    if (uploadError) {
-      throw new Error(uploadError.message);
+    const uploadWithClient = async (client) => {
+      const storagePath = `${homestaySlug}/${Date.now()}-${randomUUID()}-${safeName}`;
+      const { error: uploadError } = await client.storage
+        .from(bucket)
+        .upload(storagePath, fileBuffer, { contentType, upsert: false });
+
+      if (uploadError) {
+        return { error: uploadError };
+      }
+
+      const { data: urlData } = client.storage.from(bucket).getPublicUrl(storagePath);
+      const existing = await getHomestayContent();
+      const sortOrder = existing.find((item) => item.slug === homestaySlug)?.images.length ?? 0;
+
+      const { data, error } = await client
+        .from("homestay_images")
+        .insert({
+          homestay_slug: homestaySlug,
+          storage_path: storagePath,
+          public_url: urlData.publicUrl,
+          alt_text: altText || `${homestay.name} photo`,
+          sort_order: sortOrder,
+        })
+        .select("id, public_url, alt_text, sort_order")
+        .single();
+      if (error) {
+        await client.storage.from(bucket).remove([storagePath]);
+      }
+      return { data, error };
+    };
+
+    let { data, error } = await uploadWithClient(primaryClient);
+    if (error && fallbackClient && isLikelyRlsError(error.message)) {
+      ({ data, error } = await uploadWithClient(fallbackClient));
     }
 
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(storagePath);
-    const existing = await getHomestayContent();
-    const sortOrder = existing.find((item) => item.slug === homestaySlug)?.images.length ?? 0;
-
-    const { data, error } = await supabase
-      .from("homestay_images")
-      .insert({
-        homestay_slug: homestaySlug,
-        storage_path: storagePath,
-        public_url: urlData.publicUrl,
-        alt_text: altText || `${homestay.name} photo`,
-        sort_order: sortOrder,
-      })
-      .select("id, public_url, alt_text, sort_order")
-      .single();
     if (error) {
       throw new Error(error.message);
     }
@@ -232,25 +339,34 @@ export async function uploadImage({ homestaySlug, altText, fileBuffer, originalN
   return image;
 }
 
-export async function deleteImage({ homestaySlug, imageId }) {
+export async function deleteImage({ homestaySlug, imageId }, options = {}) {
   if (shouldUseSupabase()) {
-    const supabase = getSupabaseAdminClient();
-    const bucket = process.env.SUPABASE_STORAGE_BUCKET || "homestay-images";
-    const { data: imageRow, error: findError } = await supabase
-      .from("homestay_images")
-      .select("id, storage_path")
-      .eq("id", imageId)
-      .single();
+    const { primaryClient, fallbackClient } = getMutationClients(options.accessToken);
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET || "homestay_images";
+    const deleteWithClient = async (client) => {
+      const { data: imageRow, error: findError } = await client
+        .from("homestay_images")
+        .select("id, storage_path")
+        .eq("id", imageId)
+        .single();
 
-    if (findError) {
-      throw new Error(findError.message);
+      if (findError) {
+        return { error: findError };
+      }
+
+      if (imageRow?.storage_path) {
+        await client.storage.from(bucket).remove([imageRow.storage_path]);
+      }
+
+      const { error } = await client.from("homestay_images").delete().eq("id", imageId);
+      return { error };
+    };
+
+    let { error } = await deleteWithClient(primaryClient);
+    if (error && fallbackClient && isLikelyRlsError(error.message)) {
+      ({ error } = await deleteWithClient(fallbackClient));
     }
 
-    if (imageRow?.storage_path) {
-      await supabase.storage.from(bucket).remove([imageRow.storage_path]);
-    }
-
-    const { error } = await supabase.from("homestay_images").delete().eq("id", imageId);
     if (error) {
       throw new Error(error.message);
     }
@@ -274,14 +390,36 @@ export async function deleteImage({ homestaySlug, imageId }) {
   }
 }
 
-export async function reorderImages({ homestaySlug, imageIds }) {
+export async function reorderImages({ homestaySlug, imageIds }, options = {}) {
   if (shouldUseSupabase()) {
-    const supabase = getSupabaseAdminClient();
-    await Promise.all(
-      imageIds.map((id, index) =>
-        supabase.from("homestay_images").update({ sort_order: index }).eq("id", id),
-      ),
-    );
+    const { primaryClient, fallbackClient } = getMutationClients(options.accessToken);
+    const reorderWithClient = async (client) => {
+      const results = await Promise.all(
+        imageIds.map((id, index) =>
+          client
+            .from("homestay_images")
+            .update({ sort_order: index })
+            .eq("id", id)
+            .eq("homestay_slug", homestaySlug)
+            .select("id")
+            .single(),
+        ),
+      );
+      const failed = results.find((item) => item.error);
+      if (failed?.error) {
+        return { error: failed.error };
+      }
+      return { error: null };
+    };
+
+    let { error } = await reorderWithClient(primaryClient);
+    if (error && fallbackClient && isLikelyRlsError(error.message)) {
+      ({ error } = await reorderWithClient(fallbackClient));
+    }
+
+    if (error) {
+      throw new Error(error.message);
+    }
     return;
   }
 
@@ -299,6 +437,9 @@ export async function reorderImages({ homestaySlug, imageIds }) {
       };
     })
     .filter(Boolean);
+  if (mapped.length !== imageIds.length) {
+    throw new Error("Only uploaded images can be reordered.");
+  }
 
   localData.images[homestaySlug] = mapped;
   await writeLocalData(localData);

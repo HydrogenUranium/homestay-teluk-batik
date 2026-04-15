@@ -3,15 +3,32 @@
 import Image from "next/image";
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import { formatDateLabel } from "@/lib/utils/format";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pickLocalized, useLanguage } from "@/lib/i18n/language";
 import LanguageSwitcher from "@/components/shared/LanguageSwitcher";
 
 export default function AdminDashboard({ initialHomestays, adminName }) {
   const [homestays, setHomestays] = useState(initialHomestays);
-  const [status, setStatus] = useState("");
-  const [error, setError] = useState("");
+  const [notice, setNotice] = useState(null);
+  const noticeTimerRef = useRef(null);
   const { t, language } = useLanguage();
+
+  function showNotice(type, message) {
+    setNotice({ type, message });
+    if (noticeTimerRef.current) {
+      clearTimeout(noticeTimerRef.current);
+    }
+    noticeTimerRef.current = setTimeout(() => setNotice(null), 4200);
+  }
+
+  useEffect(
+    () => () => {
+      if (noticeTimerRef.current) {
+        clearTimeout(noticeTimerRef.current);
+      }
+    },
+    [],
+  );
 
   async function refreshData() {
     const response = await fetch("/api/homestays", { cache: "no-store" });
@@ -26,8 +43,6 @@ export default function AdminDashboard({ initialHomestays, adminName }) {
 
   async function handleUpload(event, homestaySlug) {
     event.preventDefault();
-    setError("");
-    setStatus("");
     const form = event.currentTarget;
 
     const formData = new FormData(form);
@@ -35,25 +50,23 @@ export default function AdminDashboard({ initialHomestays, adminName }) {
     const response = await fetch("/api/admin/images", { method: "POST", body: formData });
     if (!response.ok) {
       const data = await response.json();
-      setError(data.message || t("admin.errors.uploadFailed"));
+      showNotice("error", data.message || t("admin.errors.uploadFailed"));
       return;
     }
-    setStatus(t("admin.status.imageUploaded"));
+    showNotice("success", t("admin.status.imageUploaded"));
     form?.reset();
     await refreshData();
   }
 
   async function handleDeleteImage(homestaySlug, imageId) {
-    setError("");
-    setStatus("");
     const response = await fetch(`/api/admin/images/${imageId}?homestaySlug=${homestaySlug}`, {
       method: "DELETE",
     });
     if (!response.ok) {
-      setError(t("admin.errors.deleteImageFailed"));
+      showNotice("error", t("admin.errors.deleteImageFailed"));
       return;
     }
-    setStatus(t("admin.status.imageDeleted"));
+    showNotice("success", t("admin.status.imageDeleted"));
     await refreshData();
   }
 
@@ -68,17 +81,40 @@ export default function AdminDashboard({ initialHomestays, adminName }) {
 
     [imageIds[currentIndex], imageIds[nextIndex]] = [imageIds[nextIndex], imageIds[currentIndex]];
 
+    const previousHomestays = homestays;
+    setHomestays((current) =>
+      current.map((item) => {
+        if (item.slug !== homestaySlug) {
+          return item;
+        }
+        const reordered = imageIds
+          .map((id, index) => {
+            const image = item.images.find((entry) => entry.id === id);
+            if (!image) {
+              return null;
+            }
+            return { ...image, sortOrder: index };
+          })
+          .filter(Boolean);
+
+        return {
+          ...item,
+          images: reordered,
+        };
+      }),
+    );
+
     const response = await fetch("/api/admin/images/reorder", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ homestaySlug, imageIds }),
     });
     if (!response.ok) {
-      setError(t("admin.errors.reorderFailed"));
+      setHomestays(previousHomestays);
+      showNotice("error", t("admin.errors.reorderFailed"));
       return;
     }
-    setStatus(t("admin.status.imageOrder"));
-    await refreshData();
+    showNotice("success", t("admin.status.imageOrder"));
   }
 
   async function handleBlockDate(event, homestaySlug) {
@@ -95,10 +131,10 @@ export default function AdminDashboard({ initialHomestays, adminName }) {
     });
     if (!response.ok) {
       const data = await response.json();
-      setError(data.message || t("admin.errors.blockDateFailed"));
+      showNotice("error", data.message || t("admin.errors.blockDateFailed"));
       return;
     }
-    setStatus(t("admin.status.dateBlocked"));
+    showNotice("success", t("admin.status.dateBlocked"));
     form?.reset();
     await refreshData();
   }
@@ -109,10 +145,10 @@ export default function AdminDashboard({ initialHomestays, adminName }) {
       { method: "DELETE" },
     );
     if (!response.ok) {
-      setError(t("admin.errors.removeDateFailed"));
+      showNotice("error", t("admin.errors.removeDateFailed"));
       return;
     }
-    setStatus(t("admin.status.dateRemoved"));
+    showNotice("success", t("admin.status.dateRemoved"));
     await refreshData();
   }
 
@@ -140,9 +176,6 @@ export default function AdminDashboard({ initialHomestays, adminName }) {
       </header>
 
       <main className="shell mt-6 space-y-4">
-        {status && <p className="rounded-xl bg-emerald-100 px-4 py-2 text-sm text-emerald-700">{status}</p>}
-        {error && <p className="rounded-xl bg-rose-100 px-4 py-2 text-sm text-rose-700">{error}</p>}
-
         {homestays.map((home) => (
           <section key={home.slug} className="surface-card p-5 sm:p-6" data-testid={`admin-${home.slug}`}>
             <h2 className="text-xl font-bold text-ocean-900">{home.name}</h2>
@@ -176,7 +209,7 @@ export default function AdminDashboard({ initialHomestays, adminName }) {
                 </form>
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  {home.images.map((image) => (
+                  {[...home.images].sort((a, b) => a.sortOrder - b.sortOrder).map((image) => (
                     <div key={image.id} className="rounded-xl border border-slate-200 bg-white p-2">
                       <div className="relative h-24 overflow-hidden rounded-lg">
                         <Image src={image.src} alt={image.alt || home.name} fill className="object-cover" />
@@ -259,6 +292,17 @@ export default function AdminDashboard({ initialHomestays, adminName }) {
           </section>
         ))}
       </main>
+      {notice && (
+        <div className="pointer-events-none fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4">
+          <p
+            className={`rounded-full px-5 py-3 text-sm font-semibold shadow-soft ${
+              notice.type === "error" ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
+            }`}
+          >
+            {notice.message}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

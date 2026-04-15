@@ -8,12 +8,16 @@ export async function DELETE(request, { params }) {
     return auth.response;
   }
 
-  const { id } = await params;
-  const homestaySlug = request.nextUrl.searchParams.get("homestaySlug");
-  if (!homestaySlug) {
-    return NextResponse.json({ message: "homestaySlug is required." }, { status: 400 });
-  }
+  try {
+    const { id } = await params;
+    const homestaySlug = request.nextUrl.searchParams.get("homestaySlug");
+    if (!homestaySlug) {
+      return NextResponse.json({ message: "homestaySlug is required." }, { status: 400 });
+    }
 
-  await deleteImage({ homestaySlug, imageId: id });
-  return NextResponse.json({ ok: true });
+    await deleteImage({ homestaySlug, imageId: id }, { accessToken: auth.supabaseAccessToken });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json({ message: error.message || "Failed to delete image." }, { status: 400 });
+  }
 }

@@ -12,6 +12,11 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const homestays = await getHomestayContent();
+  const socialLinks = [
+    process.env.NEXT_PUBLIC_TIKTOK_URL || "https://www.tiktok.com",
+    process.env.NEXT_PUBLIC_FACEBOOK_URL || "https://www.facebook.com",
+    process.env.NEXT_PUBLIC_X_URL || "https://x.com",
+  ];
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -19,6 +24,7 @@ export default async function HomePage() {
       "@type": "LodgingBusiness",
       name: home.name,
       description: home.shortDescription?.en || home.shortDescription,
+      sameAs: socialLinks,
       areaServed: ["Teluk Batik", "Lumut", "Lekir", "Perak"],
       address: {
         "@type": "PostalAddress",
@@ -26,10 +32,28 @@ export default async function HomePage() {
         addressRegion: "Perak",
         addressCountry: "MY",
       },
+      hasMap: home.mapUrl,
       amenityFeature: (home.amenities?.en || home.amenities || []).map((item) => ({
         "@type": "LocationFeatureSpecification",
         name: item,
       })),
+      offers: {
+        "@type": "Offer",
+        price: home.pricePerNight,
+        priceCurrency: "MYR",
+        unitText: "night",
+        availability:
+          (home.blockedDates || []).length >= 365
+            ? "https://schema.org/SoldOut"
+            : "https://schema.org/InStock",
+      },
+      additionalProperty: [
+        {
+          "@type": "PropertyValue",
+          name: "Unavailable dates",
+          value: (home.blockedDates || []).join(", "),
+        },
+      ],
       url: buildCanonicalUrl(`/#${home.slug}`),
     })),
   };

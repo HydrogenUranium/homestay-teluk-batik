@@ -1,0 +1,23 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="40" y1="30" x2="1120" y2="590" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F4B6E"/>
+      <stop offset="0.5" stop-color="#1A7FA8"/>
+      <stop offset="1" stop-color="#4CB7C5"/>
+    </linearGradient>
+    <radialGradient id="wave" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(950 50) rotate(125) scale(560 500)">
+      <stop stop-color="#FFD4B4" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#FFD4B4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" rx="36" fill="url(#bg)"/>
+  <rect width="1200" height="630" rx="36" fill="url(#wave)"/>
+  <path d="M-30 470C120 430 240 520 390 482C530 446 680 352 830 390C980 428 1090 526 1230 500V630H-30V470Z" fill="#FFFFFF" fill-opacity="0.16"/>
+  <rect x="84" y="90" width="420" height="46" rx="23" fill="#FFFFFF" fill-opacity="0.18"/>
+  <text x="112" y="121" fill="#E6FBFF" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">TELUK BATIK • LUMUT • LEKIR</text>
+  <text x="84" y="255" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="800">Homestay</text>
+  <text x="84" y="340" fill="#FFEAD9" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800">Teluk Batik</text>
+  <text x="84" y="404" fill="#DFF8FF" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="600">Family Holiday Stay Near the Beach</text>
+  <text x="84" y="470" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700">Homestay Teluk Batik • Homestay Lekir Tanjung Kepah</text>
+  <text x="84" y="520" fill="#ECFCFF" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="500">Check availability, pricing, and WhatsApp booking in one place.</text>
+</svg>

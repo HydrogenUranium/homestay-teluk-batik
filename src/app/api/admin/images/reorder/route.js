@@ -16,7 +16,7 @@ export async function POST(request) {
 
   try {
     const payload = payloadSchema.parse(await request.json());
-    await reorderImages(payload);
+    await reorderImages(payload, { accessToken: auth.supabaseAccessToken });
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json({ message: error.message || "Failed to reorder images." }, { status: 400 });

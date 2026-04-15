@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 export const ADMIN_COOKIE_NAME = "htb_admin_session";
+export const SUPABASE_ACCESS_COOKIE_NAME = "htb_sb_access_token";
 const encoder = new TextEncoder();
 
 function getSecret() {

@@ -16,7 +16,9 @@ export async function POST(request) {
 
   try {
     const payload = bodySchema.parse(await request.json());
-    const blocked = await addBlockedDate(payload.homestaySlug, payload.date);
+    const blocked = await addBlockedDate(payload.homestaySlug, payload.date, {
+      accessToken: auth.supabaseAccessToken,
+    });
     return NextResponse.json({ blocked }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ message: error.message || "Failed to block date." }, { status: 400 });

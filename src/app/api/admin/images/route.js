@@ -33,6 +33,8 @@ export async function POST(request) {
       fileBuffer: Buffer.from(arrayBuffer),
       originalName: file.name,
       contentType: file.type || "image/jpeg",
+    }, {
+      accessToken: auth.supabaseAccessToken,
     });
 
     return NextResponse.json({ image }, { status: 201 });

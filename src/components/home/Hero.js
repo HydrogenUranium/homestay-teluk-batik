@@ -64,6 +64,9 @@ export default function Hero({ homestays }) {
               <div className="p-2">
                 <h2 className="text-base font-bold text-ocean-900">{home.name}</h2>
                 <p className="mt-1 text-xs text-slate-600">{pickLocalized(home.nearbyLabel, language)}</p>
+                <p className="mt-1 text-xs font-semibold text-coral">
+                  RM {home.pricePerNight} / {t("homestay.perNight")}
+                </p>
                 <a
                   href={`#${home.slug}`}
                   className="mt-3 inline-flex text-sm font-semibold text-ocean-700 hover:text-ocean-900"

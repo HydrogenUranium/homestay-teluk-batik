@@ -28,11 +28,20 @@ export const metadata = {
     url: buildCanonicalUrl("/"),
     type: "website",
     locale: "en_MY",
+    images: [
+      {
+        url: buildCanonicalUrl("/branding/og-homestay-teluk-batik.svg"),
+        width: 1200,
+        height: 630,
+        alt: "Homestay Teluk Batik and Homestay Lekir Tanjung Kepah",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Homestay Teluk Batik & Lekir Tanjung Kepah",
     description: "Check availability and book your Teluk Batik holiday stay via WhatsApp.",
+    images: [buildCanonicalUrl("/branding/og-homestay-teluk-batik.svg")],
   },
   keywords: [
     "homestay Teluk Batik",

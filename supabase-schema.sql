@@ -26,7 +26,7 @@ create table if not exists public.homestay_blocked_dates (
 create index if not exists homestay_blocked_dates_slug_date_idx
   on public.homestay_blocked_dates (homestay_slug, date);
 
--- Optional: enable RLS if you will expose direct client writes in future.
+-- Enable RLS.
 alter table public.homestay_images enable row level security;
 alter table public.homestay_blocked_dates enable row level security;
 
@@ -43,4 +43,44 @@ on public.homestay_blocked_dates for select
 to anon, authenticated
 using (true);
 
--- Admin writes are done through server-side SERVICE_ROLE key, so no broad write policies are required.
+-- Authenticated write policies (used when admin logs in via Supabase auth).
+drop policy if exists "Authenticated manage homestay images" on public.homestay_images;
+create policy "Authenticated manage homestay images"
+on public.homestay_images for all
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists "Authenticated manage blocked dates" on public.homestay_blocked_dates;
+create policy "Authenticated manage blocked dates"
+on public.homestay_blocked_dates for all
+to authenticated
+using (true)
+with check (true);
+
+-- Storage policies for admin uploads/deletes.
+-- Run after creating bucket: homestay_images (or homestay-images if you prefer dash format).
+drop policy if exists "Public read homestay storage" on storage.objects;
+create policy "Public read homestay storage"
+on storage.objects for select
+to anon, authenticated
+using (bucket_id in ('homestay_images', 'homestay-images'));
+
+drop policy if exists "Authenticated upload homestay storage" on storage.objects;
+create policy "Authenticated upload homestay storage"
+on storage.objects for insert
+to authenticated
+with check (bucket_id in ('homestay_images', 'homestay-images'));
+
+drop policy if exists "Authenticated update homestay storage" on storage.objects;
+create policy "Authenticated update homestay storage"
+on storage.objects for update
+to authenticated
+using (bucket_id in ('homestay_images', 'homestay-images'))
+with check (bucket_id in ('homestay_images', 'homestay-images'));
+
+drop policy if exists "Authenticated delete homestay storage" on storage.objects;
+create policy "Authenticated delete homestay storage"
+on storage.objects for delete
+to authenticated
+using (bucket_id in ('homestay_images', 'homestay-images'));

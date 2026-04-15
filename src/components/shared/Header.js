@@ -39,6 +39,12 @@ export default function Header() {
           >
             {t("common.whatsappUs")}
           </a>
+          <a
+            href="/admin/login"
+            className="rounded-full border border-ocean-700 px-4 py-2 text-sm font-semibold text-ocean-700 transition hover:bg-ocean-50"
+          >
+            {t("common.adminLogin")}
+          </a>
           <LanguageSwitcher />
         </nav>
         <button
@@ -69,6 +75,12 @@ export default function Header() {
               className="mt-2 rounded-full bg-ocean-700 px-4 py-2 text-center text-sm font-semibold text-white"
             >
               {t("common.whatsappUs")}
+            </a>
+            <a
+              href="/admin/login"
+              className="rounded-full border border-ocean-700 px-4 py-2 text-center text-sm font-semibold text-ocean-700"
+            >
+              {t("common.adminLogin")}
             </a>
             <LanguageSwitcher />
           </div>

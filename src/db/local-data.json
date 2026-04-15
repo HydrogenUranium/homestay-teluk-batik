@@ -2,12 +2,8 @@
   "blockedDates": {
     "teluk-batik": [
       {
-        "id": "teluk-batik-2026-04-15",
-        "date": "2026-04-15"
-      },
-      {
-        "id": "teluk-batik-2026-04-22",
-        "date": "2026-04-22"
+        "id": "teluk-batik-2026-05-02",
+        "date": "2026-05-02"
       },
       {
         "id": "teluk-batik-2026-05-03",
@@ -20,21 +16,9 @@
       {
         "id": "teluk-batik-2026-06-06",
         "date": "2026-06-06"
-      },
-      {
-        "id": "teluk-batik-2026-07-08",
-        "date": "2026-07-08"
       }
     ],
     "lekir-tanjung-kepah": [
-      {
-        "id": "lekir-tanjung-kepah-2026-04-14",
-        "date": "2026-04-14"
-      },
-      {
-        "id": "lekir-tanjung-kepah-2026-04-30",
-        "date": "2026-04-30"
-      },
       {
         "id": "lekir-tanjung-kepah-2026-05-09",
         "date": "2026-05-09"
@@ -50,38 +34,7 @@
     ]
   },
   "images": {
-    "teluk-batik": [
-      {
-        "id": "28604e13-fbb3-4c3a-b374-92e8d5a3fe57",
-        "src": "/uploads/teluk-batik/1776004708801-20250531_091242.jpg",
-        "alt": "Test upload alt text",
-        "sortOrder": 0
-      },
-      {
-        "id": "5aabd233-bda1-471c-bc44-f8c1d007447d",
-        "src": "/uploads/teluk-batik/1776004710180-20250531_091242.jpg",
-        "alt": "Test upload alt text",
-        "sortOrder": 1
-      },
-      {
-        "id": "53d98a46-cbe9-47ab-9b9d-5d66047cc8c3",
-        "src": "/uploads/teluk-batik/1776004737618-20250531_091242.jpg",
-        "alt": "Test upload alt text",
-        "sortOrder": 2
-      },
-      {
-        "id": "7a660b81-8c6e-455a-bff3-19eb2a6ac4d7",
-        "src": "/uploads/teluk-batik/1776004770153-20250531_091242.jpg",
-        "alt": "Test upload alt text",
-        "sortOrder": 3
-      },
-      {
-        "id": "aa501c93-4f01-487c-8738-8c22f65540db",
-        "src": "/uploads/teluk-batik/1776005824445-20250531_091427.jpg",
-        "alt": "Homestay Teluk Batik photo",
-        "sortOrder": 4
-      }
-    ],
+    "teluk-batik": [],
     "lekir-tanjung-kepah": []
   }
 }
