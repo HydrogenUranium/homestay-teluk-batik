@@ -98,6 +98,7 @@ export const HOMESTAYS = [
   {
     id: "homestay-teluk-batik",
     slug: "teluk-batik",
+    detailPath: "/homestay-teluk-batik",
     name: "Homestay Teluk Batik",
     pricePerNight: 250,
     shortDescription: {
@@ -147,6 +148,7 @@ export const HOMESTAYS = [
   {
     id: "homestay-lekir-tanjung-kepah",
     slug: "lekir-tanjung-kepah",
+    detailPath: "/homestay-lekir-tanjung-kepah",
     name: "Homestay Lekir Tanjung Kepah",
     pricePerNight: 200,
     shortDescription: {

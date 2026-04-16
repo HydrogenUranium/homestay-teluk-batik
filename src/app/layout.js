@@ -14,12 +14,20 @@ const headingFont = Space_Grotesk({
 });
 
 export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.telukbatik.com.my"),
-  title: "Homestay Teluk Batik & Homestay Lekir Tanjung Kepah | Stay Near Teluk Batik, Lumut",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.telukbatik.my"),
+  title: {
+    default: "Homestay Teluk Batik & Homestay Lekir Tanjung Kepah | Stay Near Teluk Batik, Lumut",
+    template: "%s | Homestay Teluk Batik",
+  },
   description:
     "Cari homestay Teluk Batik dan homestay Lumut yang selesa untuk family trip, mandi pantai, Marina Island, Pulau Pangkor route, dan Bukit 300. Semak availability dan book via WhatsApp.",
+  applicationName: "Homestay Teluk Batik",
   alternates: {
     canonical: buildCanonicalUrl("/"),
+    languages: {
+      "en-MY": buildCanonicalUrl("/"),
+      "ms-MY": buildCanonicalUrl("/"),
+    },
   },
   openGraph: {
     title: "Homestay Teluk Batik & Homestay Lekir Tanjung Kepah",
@@ -27,6 +35,7 @@ export const metadata = {
       "Homestay near Teluk Batik, Lumut with family-friendly spaces, photo galleries, and calendar availability.",
     url: buildCanonicalUrl("/"),
     type: "website",
+    siteName: "Homestay Teluk Batik",
     locale: "en_MY",
     images: [
       {

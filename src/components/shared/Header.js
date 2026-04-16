@@ -2,36 +2,40 @@
 
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/language";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
   const { t } = useLanguage();
+  const sectionHref = (id) => (pathname === "/" ? `#${id}` : `/#${id}`);
   const navItems = [
-    { label: t("nav.home"), href: "#home" },
-    { label: t("nav.homestays"), href: "#homestays" },
-    { label: t("nav.availability"), href: "#availability" },
-    { label: t("nav.nearby"), href: "#nearby" },
-    { label: t("nav.faq"), href: "#faq" },
-    { label: t("nav.contact"), href: "#contact" },
+    { label: t("nav.home"), href: "/" },
+    { label: t("nav.homestays"), href: sectionHref("homestays") },
+    { label: t("nav.availability"), href: sectionHref("availability") },
+    { label: t("nav.nearby"), href: "/nearby-attractions" },
+    { label: t("nav.faq"), href: "/faq" },
+    { label: t("nav.contact"), href: sectionHref("contact") },
   ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/50 bg-white/80 backdrop-blur">
       <div className="shell flex h-20 items-center justify-between gap-4">
-        <a href="#home" className="text-lg font-bold tracking-tight text-ocean-900">
+        <Link href="/" className="text-lg font-bold tracking-tight text-ocean-900">
           Homestay Teluk Batik
-        </a>
+        </Link>
         <nav className="hidden items-center gap-6 md:flex">
           {navItems.map((item) => (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className="text-sm font-medium text-slate-700 transition hover:text-ocean-700"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
           <a
             href={process.env.NEXT_PUBLIC_WHATSAPP_URL || "https://wa.me/60123456789"}
@@ -61,14 +65,14 @@ export default function Header() {
         <div className="shell border-t border-slate-200 py-4 md:hidden">
           <div className="flex flex-col gap-3">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 className="rounded-lg px-2 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
                 onClick={() => setIsOpen(false)}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
             <a
               href={process.env.NEXT_PUBLIC_WHATSAPP_URL || "https://wa.me/60123456789"}

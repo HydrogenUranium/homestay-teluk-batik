@@ -1,6 +1,7 @@
 "use client";
 
 import { MapPin } from "lucide-react";
+import Link from "next/link";
 import ImageCarousel from "./ImageCarousel";
 import AvailabilityCalendar from "./AvailabilityCalendar";
 import { pickLocalized, useLanguage } from "@/lib/i18n/language";
@@ -37,6 +38,12 @@ export default function HomestaySection({ homestay, index }) {
             >
               {t("common.bookViaWhatsApp")}
             </a>
+            <Link
+              href={homestay.detailPath || `/#${homestay.slug}`}
+              className="rounded-full border border-ocean-200 px-5 py-3 text-sm font-semibold text-ocean-700 hover:bg-ocean-50"
+            >
+              {t("common.viewHomestay")}
+            </Link>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
@@ -98,6 +105,20 @@ export default function HomestaySection({ homestay, index }) {
                 <p className="mt-2">
                   <span className="font-semibold text-ocean-800">{t("homestay.unavailableDates")}:</span>{" "}
                   {blockedPreview.length > 0 ? blockedPreview.join(", ") : t("homestay.none")}
+                </p>
+                <p className="mt-3 leading-6">
+                  <Link href="/nearby-attractions/teluk-batik" className="font-semibold text-ocean-700 hover:underline">
+                    Stay near Pantai Teluk Batik
+                  </Link>{" "}
+                  ,{" "}
+                  <Link href="/nearby-attractions/marina-island" className="font-semibold text-ocean-700 hover:underline">
+                    homestay near Marina Island
+                  </Link>{" "}
+                  ,{" "}
+                  <Link href="/nearby-attractions/bukit-300-lumut" className="font-semibold text-ocean-700 hover:underline">
+                    stay for your Bukit 300 weekend
+                  </Link>
+                  .
                 </p>
               </div>
             </div>

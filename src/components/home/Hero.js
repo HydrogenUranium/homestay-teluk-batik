@@ -68,7 +68,7 @@ export default function Hero({ homestays }) {
                   RM {home.pricePerNight} / {t("homestay.perNight")}
                 </p>
                 <a
-                  href={`#${home.slug}`}
+                  href={home.detailPath || `#${home.slug}`}
                   className="mt-3 inline-flex text-sm font-semibold text-ocean-700 hover:text-ocean-900"
                 >
                   {t("common.viewHomestay")}

@@ -5,8 +5,13 @@ async function loginAsAdmin(page) {
   await page.goto("/admin/login");
   await page.getByLabel(/Username \/ Email|Nama Pengguna \/ Emel/i).fill("admin");
   await page.getByLabel(/Password|Kata Laluan/i).fill("admin12345");
+  const loginResponsePromise = page.waitForResponse(
+    (response) => response.url().includes("/api/auth/login") && response.request().method() === "POST",
+  );
   await page.getByRole("button", { name: /Login|Log Masuk/i }).click();
-  await expect(page).toHaveURL(/\/admin$/);
+  const loginResponse = await loginResponsePromise;
+  expect(loginResponse.ok()).toBeTruthy();
+  await expect(page).toHaveURL(/\/admin$/, { timeout: 15000 });
 }
 
 function randomFutureIsoDate() {
@@ -47,6 +52,25 @@ test.describe("Public landing page", () => {
       "content",
       /og-homestay-teluk-batik/i,
     );
+    await expect(page.locator("script[type='application/ld+json']")).toHaveCount(1);
+  });
+
+  test("renders SEO supporting routes and internal links", async ({ page }) => {
+    await page.goto("/nearby-attractions");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/Nearby Attractions/i);
+    await expect(page.getByRole("link", { name: /Read local guide/i }).first()).toBeVisible();
+
+    await page.goto("/nearby-attractions/teluk-batik");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/Pantai Teluk Batik/i);
+    await expect(page.getByRole("link", { name: /View Homestay Teluk Batik/i })).toBeVisible();
+    await expect(page.locator("script[type='application/ld+json']")).toHaveCount(1);
+
+    await page.goto("/homestay-teluk-batik");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/Homestay Teluk Batik/i);
+    await expect(page.getByRole("link", { name: /View nearby attractions guide/i })).toBeVisible();
+
+    await page.goto("/faq");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/Frequently Asked Questions/i);
     await expect(page.locator("script[type='application/ld+json']")).toHaveCount(1);
   });
 });

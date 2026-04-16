@@ -6,7 +6,7 @@ export default function robots() {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/admin/*", "/api/admin/*"],
+        disallow: ["/admin", "/admin/*", "/api/*"],
       },
     ],
     sitemap: buildCanonicalUrl("/sitemap.xml"),

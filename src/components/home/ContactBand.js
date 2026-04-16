@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/language";
 
 export default function ContactBand() {
@@ -28,6 +29,12 @@ export default function ContactBand() {
               >
                 {t("common.checkAvailability")}
               </a>
+              <Link
+                href="/nearby-attractions"
+                className="rounded-full border border-cyan-200/70 px-5 py-3 text-sm font-semibold text-cyan-50 hover:bg-white/10"
+              >
+                Nearby Guides
+              </Link>
               <a
                 href={whatsappUrl}
                 className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white hover:bg-[#f16652]"

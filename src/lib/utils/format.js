@@ -9,6 +9,6 @@ export function toIsoDate(date) {
 }
 
 export function buildCanonicalUrl(pathname = "/") {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.telukbatik.com.my";
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://www.telukbatik.my";
   return new URL(pathname, base).toString();
 }

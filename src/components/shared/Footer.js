@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/language";
+import Link from "next/link";
 
 function SocialIcon({ type }) {
   if (type === "tiktok") {
@@ -44,15 +45,24 @@ export default function Footer() {
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-ocean-700">{t("footer.quickLinks")}</h3>
           <div className="mt-3 flex flex-col gap-2 text-sm">
-            <a href="#homestays" className="text-slate-600 hover:text-ocean-800">
+            <Link href="/#homestays" className="text-slate-600 hover:text-ocean-800">
               {t("footer.viewHomestays")}
-            </a>
-            <a href="#availability" className="text-slate-600 hover:text-ocean-800">
+            </Link>
+            <Link href="/#availability" className="text-slate-600 hover:text-ocean-800">
               {t("footer.availabilityCalendar")}
-            </a>
-            <a href="#faq" className="text-slate-600 hover:text-ocean-800">
+            </Link>
+            <Link href="/homestay-teluk-batik" className="text-slate-600 hover:text-ocean-800">
+              Homestay Teluk Batik
+            </Link>
+            <Link href="/homestay-lekir-tanjung-kepah" className="text-slate-600 hover:text-ocean-800">
+              Homestay Lekir Tanjung Kepah
+            </Link>
+            <Link href="/nearby-attractions" className="text-slate-600 hover:text-ocean-800">
+              Nearby Attractions Guide
+            </Link>
+            <Link href="/faq" className="text-slate-600 hover:text-ocean-800">
               FAQ
-            </a>
+            </Link>
           </div>
         </div>
         <div>
